@@ -203,9 +203,13 @@ function renderLive(s,T,armed){
 }
 async function load(){try{const r=await fetch('data.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error(r.status);render(await r.json());}catch(e){document.getElementById('upd').textContent='refresh failed ('+e.message+') — retrying';}}
 if(location.search.includes('t='))history.replaceState(null,'',location.pathname);
-function freshness(){if(!S)return;const age=Date.now()/1000-S.server_time, iv=S.publish_interval_sec||360;
- const a=age<90?Math.round(age)+'s':Math.round(age/60)+' min';
- const stale=age>iv+180;
- document.getElementById('upd').innerHTML=(stale?'<span class="badge b-armed">STALE</span> ':'')+'updated '+a+' ago'+'<div class="sub">'+fmtT(S.server_time)+' · publishes every ~'+Math.round(iv/60)+' min</div>';}
+function freshness(){if(!S)return;const now=Date.now()/1000, age=now-S.server_time, lim=S.stale_after_sec||900;
+ const ag=x=>x<90?Math.round(x)+'s':x<5400?Math.round(x/60)+' min':(x/3600).toFixed(1)+' h';
+ const stale=age>lim;
+ let c=S.last_cycle_ts; if(typeof c==='string')c=Date.parse(c)/1000;
+ const cyc=c?('last desk cycle '+ag(now-c)+' ago ('+fmtS(c)+' PT)'+(now-c>1500?' <span class="neg">overdue</span>':'')):'no desk cycle yet';
+ const lp=S.last_pause&&(now-S.last_pause.ts<7200)?'<div class="sub" style="color:var(--warn)">desk computer was paused ~'+S.last_pause.minutes+' min, resumed '+fmtS(S.last_pause.ts)+' PT</div>':'';
+ document.getElementById('upd').innerHTML=(stale?'<span class="badge b-armed">STALE</span> ':'')+'published '+ag(age)+' ago'+
+  '<div class="sub">'+cyc+'</div><div class="sub">publishes every ~'+Math.round((S.publish_interval_sec||360)/60)+' min · stale after '+Math.round(lim/60)+' min</div>'+lp;}
 load();setInterval(load,30000);setInterval(freshness,5000);   // server keeps balance <=60s old
 </script></body></html>
