@@ -105,6 +105,7 @@ pre.report{white-space:pre-wrap;overflow-wrap:anywhere;font:11.5px/1.45 ui-monos
   <div class="card mcard"><h2>🧪 SELL TEST <span class="sub">recent rejects</span></h2><div id="stbody"><div class="empty">loading…</div></div></div>
   <div class="card mcard"><h2>📜 NIGHTLY REPORT <span class="sub" id="nrts"></span></h2><div id="nrbody"><div class="empty">loading…</div></div></div>
  </div>
+ <div class="card mcard"><h2>📊 WEEKLY SCORECARD <span class="sub" id="wsts"></span></h2><div id="wsbody"><div class="empty">loading…</div></div></div>
  <div class="row6" id="panels"></div>
  <div class="row3">
   <div class="card"><h2>BALANCE <span class="sub" id="baladdr"></span></h2><div id="balbody"></div></div>
@@ -359,13 +360,32 @@ const Magic=(()=>{
    set('nrts','');return set('nrbody',note(ph<hr?'First report tonight at '+lab+'.':'First report is due at '+lab+'; it shows here once sent.'));}
   set('nrts',n.last_sent_ts?'sent '+tPT(n.last_sent_ts):'');
   set('nrbody',`<pre class="report">${E(n.text)}</pre><div class="sub">Sent to Telegram nightly at ${lab}.</div>`);}
+ function weekly(w){
+  if(bad(w))return set('wsbody',note('First scorecard goes to Telegram Friday at 6 PM PT.')),set('wsts','');
+  if(w.error)return set('wsbody',err(w)),set('wsts','');
+  const W=w.week_so_far;
+  set('wsts',(w.schedule||'Fridays 6 PM PT')+(w.updated?' · week so far '+hm(w.updated):''));
+  if(!W)return set('wsbody',note('Week-so-far numbers appear within 15 minutes.'));
+  const lv=W.live||{}, up=W.uptime||{}, fe=W.fees||{}, sg=W.suggestion||{}, L=fe.live||{}, Tt=fe.test||{};
+  const vc=v=>v==='helping'?'pos':v==='hurting'?'neg':'sub';
+  let h='<div class="plain">Every Friday the box grades its own week: trades vs just holding SOL, which checks helped or hurt, how the judge did, fees, and uptime. Real data only.</div>';
+  h+='<div class="two"><div>'+kv('live trades (bought / sold)',`${lv.opened??0} / ${lv.closed??0}`)+kv('P&amp;L closed trades',money(lv.pnl_usd))+kv('vs holding SOL',lv.vs_hold_usd==null?'—':`<span class="${lv.vs_hold_usd>=0?'pos':'neg'}">${money(lv.vs_hold_usd)}</span>`)
+   +kv('test trades / cost',`${(W.tests||[]).length} / ${money(W.test_cost_usd)}`)+'</div><div>'
+   +kv('fees (live)',money((L.jupiter_fee_usd||0)+(L.network_usd||0)))+kv('AI + X lookups',money((fe.judge_ai_usd||0)+(fe.x_lookups_usd||0)))
+   +kv('check slots covered',up.cycle_uptime_pct!=null?`${up.cycle_uptime_pct}% <span class="sub">of ${up.tracked_hours}h</span>`:'—')+kv('computer pauses',`${(up.pauses||[]).length} <span class="sub">${up.paused_minutes||0} min</span>`)+'</div></div>';
+  const ch=(W.checks||[]).filter(c=>c.measured).slice(0,8);
+  h+='<div class="mini" style="margin-top:6px">CHECKS · DODGED vs MISSED</div>'+(ch.length?'<table class="mt"><tr><th class="l">check</th><th>dodged</th><th>missed</th><th>of</th><th class="l">verdict</th></tr>'+ch.map(c=>`<tr><td class="l">${E(c.check)}</td><td class="pos">${c.dodged}</td><td class="neg">${c.missed}</td><td>${c.measured}</td><td class="l ${vc(c.verdict)}">${E(c.verdict)}</td></tr>`).join('')+'</table>':'<div class="sub">no re-checked coins yet</div>');
+  h+=`<div class="mini" style="margin-top:6px">ONE SUGGESTION <span class="sub">· suggestion only, nothing changes without your OK</span></div><div class="plain">${E(sg.text||'—')}</div>`;
+  if(w.text)h+=`<details><summary class="sub">full week-so-far text</summary><pre class="report">${E(w.text)}</pre></details>`;
+  if(w.last_sent_text)h+=`<details><summary class="sub">last scorecard sent ${tPT(w.last_sent_ts)}</summary><pre class="report">${E(w.last_sent_text)}</pre></details>`;
+  set('wsbody',h);}
  return{update(s){if(!s)return;const now=s.server_time||Date.now()/1000;
-  for(const [fn,k] of [[scoreboard,'scoreboard'],[limit,'daily_limit'],[speed,'latency'],[sells,'sell_tests'],[nightly,'nightly_report']]){
+  for(const [fn,k] of [[scoreboard,'scoreboard'],[limit,'daily_limit'],[speed,'latency'],[sells,'sell_tests'],[nightly,'nightly_report'],[weekly,'weekly_scorecard']]){
    try{fn(s[k],now)}catch(e){console.warn(k,e)}}}};
 })();
 
 /* self-update: if a newer index.html is published, reload once (Pages caches the page up to 10 min) */
-const SITE_BUILD='20261017-202317';
+const SITE_BUILD='20261017-2120';
 setInterval(async()=>{try{const r=await fetch('index.html?b='+Date.now(),{cache:'no-store'});if(!r.ok)return;const m=(await r.text()).match(/SITE_BUILD='([^']+)'/);if(m&&m[1]!==SITE_BUILD&&!sessionStorage.getItem('rl'+m[1])){sessionStorage.setItem('rl'+m[1],1);location.reload();}}catch(e){}},300000);
 const TZ='America/Los_Angeles';
 const fmtT=ts=>ts?new Date(ts*1000).toLocaleString('en-US',{timeZone:TZ,month:'short',day:'numeric',hour:'numeric',minute:'2-digit',second:'2-digit'})+' PT':'—';
