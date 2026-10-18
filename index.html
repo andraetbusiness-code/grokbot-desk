@@ -1,5 +1,5 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#120a2e"><title>Magic Money Box</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#120a2e"><title>Magic Money Box</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&display=swap">
 <style>
@@ -69,11 +69,34 @@ th{background:#140c2c}td,th{border-bottom-color:#2a1f52}
 ::selection{background:#f5c54255}
 @media (prefers-reduced-motion: reduce){body::before,.logo .rays,.logo .tw{animation:none}}
 @media(max-width:620px){h1{font-size:21px;letter-spacing:1px}.logo{width:42px;height:37px}}
+
+/* ---- Magic panels ---- */
+.rowm1{display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:12px}.rowm2{display:grid;grid-template-columns:1fr 1.35fr;gap:12px}
+@media(max-width:1000px){.rowm1,.rowm2{grid-template-columns:1fr}}.rowm1>*,.rowm2>*{min-width:0}
+.mcard{border-color:#4a3a8f}.mcard h2{flex-wrap:wrap;gap:2px 8px}.mcard h2 .sub{letter-spacing:.5px}.plain{font-size:11.5px;color:#d9c8ff;background:#f5c5420d;border-left:2px solid var(--mag);padding:5px 8px;border-radius:4px;margin:2px 0 8px}
+.plain b{font-weight:700}.vs{display:flex;align-items:flex-end;gap:16px;margin:2px 0 4px}.vsmid{color:var(--dim);font-size:11px;padding-bottom:16px}
+.tug{display:flex;height:8px;border-radius:5px;overflow:hidden;background:#241a4a;margin:4px 0 6px}.tug i{display:block;height:100%}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}.two>*{min-width:0}@media(max-width:420px){.two{grid-template-columns:1fr;gap:4px}}
+.mini{font-size:10px;letter-spacing:2px;color:var(--mag);margin:2px 0}.mini.neg{color:var(--bad)}.mini.pos{color:var(--ok)}
+.meter{position:relative;height:22px;border-radius:11px;background:#241a4a;border:1px solid var(--edge);overflow:hidden;margin:8px 0}
+.meter i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#f5c542,#ff8a3d,#ff5c7a);box-shadow:0 0 10px #ff8a3d88}
+.meter.full{border-color:var(--bad);box-shadow:0 0 12px #ff5c7a66}.meter span{position:relative;display:block;text-align:center;line-height:20px;font-size:11px;color:#fff;text-shadow:0 1px 2px #000}
+table.mt{font-size:11px}table.mt td,table.mt th{padding:3px 4px}table.mt td.l{white-space:normal;overflow-wrap:anywhere}
+pre.report{white-space:pre-wrap;overflow-wrap:anywhere;font:11.5px/1.45 ui-monospace,Menlo,monospace;color:#ece6ff;background:#07041a;border:1px solid var(--edge);border-radius:6px;padding:8px;margin:0 0 6px;max-height:320px;overflow:auto}
 </style></head><body>
 <header><div class="brand"><svg class="logo" viewBox="0 0 64 56" aria-hidden="true"><defs><linearGradient id="lb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6a35a8"/><stop offset="1" stop-color="#3a1868"/></linearGradient><linearGradient id="lr" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#f5c542" stop-opacity=".75"/><stop offset="1" stop-color="#f5c542" stop-opacity="0"/></linearGradient></defs><path class="rays" d="M18 24 L6 0 H58 L46 24Z" fill="url(#lr)"/><path d="M12 26 L52 26 L48 16 L16 16Z" fill="#4b2280" stroke="#f5c542" stroke-width="1.6"/><rect x="8" y="26" width="48" height="26" rx="3" fill="url(#lb)" stroke="#f5c542" stroke-width="1.6"/><rect x="20" y="26" width="3" height="26" fill="#f5c542"/><rect x="41" y="26" width="3" height="26" fill="#f5c542"/><rect x="28" y="29" width="8" height="8" rx="2" fill="#f5c542"/><path class="tw" d="M54 6q0 4 4 4q-4 0-4 4q0-4-4-4q4 0 4-4Z" fill="#fff6c8"/><path class="tw t2" d="M8 4q0 3 3 3q-3 0-3 3q0-3-3-3q3 0 3-3Z" fill="#f5c542"/></svg><div><h1>Magic Money Box<span class="spark">✦</span></h1><div class="sub">memecoin desk · public view-only mirror · no controls</div></div></div>
 <div class="meta"><div id="mode"></div><div id="upd">loading…</div></div></header>
 <div class="wrap">
  <div class="card floorcard"><h2>✨ MAGIC WORKSHOP <span class="sub" id="floorcd"></span></h2><canvas id="floor" role="img" aria-label="Magic Money Box workshop"></canvas></div>
+  <div class="rowm1">
+  <div class="card mcard"><h2>🔮 WHAT-IF SCOREBOARD <span class="sub" id="sbwin"></span></h2><div id="sbbody"><div class="empty">loading…</div></div></div>
+  <div class="card mcard"><h2>🛡️ DAILY LOSS LIMIT <span class="sub" id="dlreset"></span></h2><div id="dlbody"><div class="empty">loading…</div></div></div>
+  <div class="card mcard"><h2>⚡ SPEED · HELIUS <span class="dot" id="latdot"></span></h2><div id="latbody"><div class="empty">loading…</div></div></div>
+ </div>
+ <div class="rowm2">
+  <div class="card mcard"><h2>🧪 SELL TEST <span class="sub">recent rejects</span></h2><div id="stbody"><div class="empty">loading…</div></div></div>
+  <div class="card mcard"><h2>📜 NIGHTLY REPORT <span class="sub" id="nrts"></span></h2><div id="nrbody"><div class="empty">loading…</div></div></div>
+ </div>
  <div class="row6" id="panels"></div>
  <div class="row3">
   <div class="card"><h2>BALANCE <span class="sub" id="baladdr"></span></h2><div id="balbody"></div></div>
@@ -251,6 +274,91 @@ const Tick=(()=>{const prev=new Map(),RM=window.matchMedia&&matchMedia('(prefers
 
 </script>
 <script>
+/* MAGIC PANELS: What-If Scoreboard, Daily Loss Limit, Speed/Helius, Sell Test, Nightly Report.
+   View-only; every number comes from data.json (public) or api/state (local). Missing/empty keys degrade to a note. */
+const Magic=(()=>{
+ const E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ const TZ='America/Los_Angeles';
+ const tPT=ts=>ts?new Date(ts*1000).toLocaleString('en-US',{timeZone:TZ,month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})+' PT':'—';
+ const hm=ts=>ts?new Date(ts*1000).toLocaleTimeString('en-US',{timeZone:TZ,hour:'numeric',minute:'2-digit'}):'—';
+ const ago=ts=>{if(!ts)return'—';const s=Date.now()/1000-ts;return s<90?Math.round(s)+'s ago':s<5400?Math.round(s/60)+'m ago':(s/3600).toFixed(1)+'h ago'};
+ const money=v=>v==null||isNaN(v)?'—':(v<0?'-':'')+'$'+Math.abs(+v).toFixed(2);
+ const rs=r=>E(String(r||'').split(':').slice(-1)[0].replace(/_/g,' '));
+ const short=m=>m?E(m.slice(0,4)+'…'+m.slice(-4)):'?';
+ const kv=(k,v)=>`<div class="kv"><span>${k}</span><b>${v}</b></div>`;
+ const note=t=>`<div class="empty">${t}</div>`;
+ const bad=x=>!x||typeof x!=='object';
+ const err=x=>x&&x.error?note('Not available right now ('+E(x.error)+'). It will reappear on the next publish.'):'';
+ const set=(id,h)=>{const el=document.getElementById(id);if(el)el.innerHTML=h};
+ function scoreboard(sb){
+  if(bad(sb))return set('sbbody',note('No scoreboard data published yet.')),set('sbwin','');
+  if(sb.error)return set('sbbody',err(sb)),set('sbwin','');
+  set('sbwin',(sb.window_days?'last '+sb.window_days+' days':'')+(sb.updated?' · '+hm(sb.updated):''));
+  const R=(sb.totals&&sb.totals.rejected)||{}, P=(sb.totals&&sb.totals.passed)||null, ru=sb.rules||{};
+  const w=R.winners||0, d=R.dodged||0, f=R.flat||0, m=R.measured||0, tot=w+d||1;
+  let h=`<div class="plain">Every coin the box skips gets re-checked ${E((ru.horizons_h||[1,4,24]).map(x=>x+'h').join(' / '))} later: a <b class="neg">missed winner</b> went ${E((ru.winner||'≥ 2x').split(' at ')[0])}; <b class="pos">dodged</b> means it crashed (${E(ru.dodged||'≤ 0.5x or rugged')}).</div>`;
+  h+=`<div class="vs"><div><div class="big neg">${w}</div><div class="sub">missed winners</div></div><div class="vsmid">vs</div><div><div class="big pos">${d}</div><div class="sub">dodged</div></div><div><div class="big" style="color:var(--dim)">${f}</div><div class="sub">flat</div></div></div>`;
+  h+=w+d?`<div class="tug" title="missed vs dodged"><i style="width:${w/tot*100}%;background:var(--bad)"></i><i style="width:${d/tot*100}%;background:var(--ok)"></i></div>`:'<div class="tug" title="no missed or dodged coins yet"></div>';
+  h+=`<div class="sub">${m} of ${R.tracked||0} skipped coins measured so far · <b style="color:var(--mag)">${sb.pending_samples??0}</b> still waiting for their price checks</div>`;
+  if(!m)h+=note('No results yet: the first re-checks land about an hour after a coin is skipped.');
+  const lst=(a,key,cls)=>a&&a.length?a.map(x=>`<div class="kv"><span>${rs(x.reason)}</span><b class="${cls}">${x[key]} <span class="sub">of ${x.measured}</span></b></div>`).join(''):'<div class="sub">none yet</div>';
+  h+=`<div class="two"><div><div class="mini neg">TOP MISSED REASONS</div>${lst(sb.top_missed_reasons,'winners','neg')}</div><div><div class="mini pos">TOP DODGED REASONS</div>${lst(sb.top_dodged_reasons,'dodged','pos')}</div></div>`;
+  const nm=sb.notable_missed||[];
+  h+='<div class="mini" style="margin-top:6px">NOTABLE MISSES</div>'+(nm.length?nm.slice(0,6).map(n=>`<div class="kv"><span>${E(n.symbol||'?')} <span class="sub">${E(n.chain||'')} · ${rs(n.reason)} · ${hm(n.ts0)}</span></span><b class="neg">${(+n.best_x).toFixed(1)}x</b></div>`).join(''):'<div class="sub">none: no skipped coin has doubled yet</div>');
+  const pw=sb.passed_winners||[];
+  if(pw.length)h+='<div class="mini pos" style="margin-top:6px">PASSED &amp; WON</div>'+pw.map(n=>`<div class="kv"><span>${E(n.symbol||'?')}</span><b class="pos">${(+n.best_x).toFixed(1)}x</b></div>`).join('');
+  if(P&&P.tracked)h+=`<div class="sub" style="margin-top:4px">coins that passed every check: ${P.tracked} tracked, ${P.winners||0} doubled, ${P.dodged||0} crashed</div>`;
+  set('sbbody',h);}
+ function limit(dl){
+  if(bad(dl))return set('dlbody',note('No daily-limit data published yet.')),set('dlreset','');
+  if(dl.error)return set('dlbody',err(dl)),set('dlreset','');
+  const lim=+dl.limit_usd||6, loss=Math.max(0,-(+dl.loss_today_usd||0)), pct=Math.min(100,loss/lim*100), room=dl.room_left_usd??Math.max(0,lim-loss);
+  let rt=dl.resets_at, rp=Date.parse(rt); rt=isNaN(rp)?E(rt||'midnight PT'):hm(rp/1000)+' PT';
+  set('dlreset','resets '+rt);
+  const blk=!!dl.blocked;
+  let h=blk?`<div class="state neg">BLOCKED</div><div class="sub">Down ${money(-(dl.blocked_at_loss_usd??dl.loss_today_usd))} today. No new buys until ${rt}. Open positions stay protected.</div>`
+          :`<div class="state pos">OPEN</div><div class="sub">New buys allowed. The box stops buying for the day if losses reach ${money(lim)}.</div>`;
+  h+=`<div class="meter${blk?' full':''}"><i style="width:${pct}%"></i><span>${money(loss)} lost of ${money(lim)}</span></div>`;
+  h+=kv('room left today',`<span class="${room>0?'pos':'neg'}">${money(room)}</span>`)+kv('realized today',money(dl.realized_usd))+kv('open position (unrealized)',dl.open_unrealized_usd==null?'none':money(dl.open_unrealized_usd))+kv('trades closed today',dl.closed_today??0)+kv('day',E(dl.date||'—'));
+  set('dlbody',h);}
+ function speed(L,now){
+  const dot=document.getElementById('latdot');
+  if(bad(L)){if(dot)dot.className='dot off';return set('latbody',note('No speed data published yet.'));}
+  if(L.error){if(dot)dot.className='dot warn';return set('latbody',err(L));}
+  const hb=L.heartbeat, fresh=hb&&(now-hb)<180;
+  if(dot)dot.className='dot '+(L.enabled&&fresh?'ok':L.enabled?'warn':'off');
+  let h=`<div class="big">${L.median_detect_s!=null?(+L.median_detect_s).toFixed(1)+'s':'—'}</div><div class="sub">median time from a new pool appearing to the box spotting it (24h)</div>`;
+  h+=kv('RPC provider',`${E(L.rpc_provider||'?')} ${L.enabled?(fresh?'<span class="pos">● live</span>':'<span class="neg">● quiet '+ago(hb)+'</span>'):'<span class="sub">off</span>'}`);
+  h+=kv('coins detected (24h)',L.detected_24h??'—')+kv('waiting to qualify',L.waiting??'—')+kv('passed prescreen (24h)',L.prescreen_passed_24h??'—')+kv('full checks run (24h)',L.full_runs_24h??'—');
+  h+=kv('polls every',L.poll_sec?L.poll_sec+'s':'—')+kv('fallbacks / errors',`${L.rpc_fallbacks??0} / ${L.poll_errors??0}`);
+  if(L.reason||L.last_error)h+=`<div class="sub neg">${E(L.reason||'')} ${E(L.last_error||'')}</div>`;
+  const r=(L.recent||[]).slice(0,6);
+  h+='<div class="mini" style="margin-top:6px">RECENT DETECTIONS</div>'+(r.length?'<table class="mt"><tr><th class="l">coin</th><th>spotted</th><th class="l">status</th><th>age</th></tr>'+r.map(x=>`<tr><td class="l" title="${E(x.mint)}">${x.symbol?E(x.symbol):short(x.mint)}</td><td>${x.detect_s!=null?(+x.detect_s).toFixed(1)+'s':'—'}</td><td class="l">${E(x.outcome||x.status||'')}${x.last_reason?' <span class="sub">'+rs(x.last_reason)+'</span>':''}</td><td>${ago(x.created_ts)}</td></tr>`).join('')+'</table>':'<div class="sub">nothing detected yet</div>');
+  set('latbody',h);}
+ function sells(st){
+  if(bad(st))return set('stbody',note('No sell-test data published yet.'));
+  if(st.error)return set('stbody',err(st));
+  const r=st.recent_rejects||[];
+  let h='<div class="plain">Right before a buy, the box asks for a buy quote and a sell-back quote (no transaction) and checks the coin for traps. Coins that fail are blocked.</div>';
+  h+=r.length?'<table class="mt"><tr><th class="l">time PT</th><th class="l">coin</th><th class="l">reason</th></tr>'+r.slice(0,8).map(x=>`<tr><td class="l">${hm(x.ts)}</td><td class="l">${x.token?`<a target="_blank" rel="noopener" href="https://solscan.io/token/${E(x.token)}">${E(x.symbol||short(x.token))}</a>`:E(x.symbol||'?')}</td><td class="l neg">${rs(x.reason)}</td></tr>`).join('')+'</table>'
+   :note('No coin has failed the sell test yet. It runs only when the box is about to buy.');
+  set('stbody',h);}
+ function nightly(n){
+  const hr=n&&n.hour_pt!=null?+n.hour_pt:21, lab=((hr%12)||12)+(hr<12?' AM':' PM')+' PT';
+  if(bad(n))return set('nrbody',note('First report tonight at '+lab+'.')),set('nrts','');
+  if(n.error)return set('nrbody',err(n)),set('nrts','');
+  if(!n.text){const ph=+new Date().toLocaleString('en-US',{timeZone:TZ,hour:'numeric',hour12:false});
+   set('nrts','');return set('nrbody',note(ph<hr?'First report tonight at '+lab+'.':'First report is due at '+lab+'; it shows here once sent.'));}
+  set('nrts',n.last_sent_ts?'sent '+tPT(n.last_sent_ts):'');
+  set('nrbody',`<pre class="report">${E(n.text)}</pre><div class="sub">Sent to Telegram nightly at ${lab}.</div>`);}
+ return{update(s){if(!s)return;const now=s.server_time||Date.now()/1000;
+  for(const [fn,k] of [[scoreboard,'scoreboard'],[limit,'daily_limit'],[speed,'latency'],[sells,'sell_tests'],[nightly,'nightly_report']]){
+   try{fn(s[k],now)}catch(e){console.warn(k,e)}}}};
+})();
+
+/* self-update: if a newer index.html is published, reload once (Pages caches the page up to 10 min) */
+const SITE_BUILD='20261017-185516';
+setInterval(async()=>{try{const r=await fetch('index.html?b='+Date.now(),{cache:'no-store'});if(!r.ok)return;const m=(await r.text()).match(/SITE_BUILD='([^']+)'/);if(m&&m[1]!==SITE_BUILD&&!sessionStorage.getItem('rl'+m[1])){sessionStorage.setItem('rl'+m[1],1);location.reload();}}catch(e){}},300000);
 const TZ='America/Los_Angeles';
 const fmtT=ts=>ts?new Date(ts*1000).toLocaleString('en-US',{timeZone:TZ,month:'short',day:'numeric',hour:'numeric',minute:'2-digit',second:'2-digit'})+' PT':'—';
 const fmtS=ts=>ts?new Date(ts*1000).toLocaleTimeString('en-US',{timeZone:TZ,hour:'numeric',minute:'2-digit'}):'';
@@ -266,7 +374,7 @@ Chart.defaults.color='#958ac0';Chart.defaults.borderColor='#2a1f52';Chart.defaul
 function panel(name,dot,big,sub,kvs){return `<div class="card"><h2>${name}<span class="dot ${dot}"></span></h2><div class="big">${big}</div><div class="sub">${sub}</div>${(kvs||[]).map(([k,v])=>`<div class="kv"><span>${esc(k)}</span><b>${v}</b></div>`).join('')}</div>`}
 function sumPrefix(rej,p){return Object.entries(rej||{}).filter(([k])=>k.startsWith(p)).reduce((a,[,v])=>a+v,0)}
 
-function render(s){_render(s);try{Floor.update(s);Tick()}catch(e){console.warn(e)}}
+function render(s){_render(s);try{Floor.update(s);Tick()}catch(e){console.warn(e)}try{Magic.update(s)}catch(e){console.warn(e)}}
 function _render(s){
  S=s; const L=s.latest, st=L?L.stats:{}, f=st.funnel||{}, rej=st.rejections||{}, T=s.thresholds||{};
  const armed=T.ARMED===true&&!s.disarm_file;
