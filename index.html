@@ -217,7 +217,7 @@ function _render(s){
    ['tokens judged',s.latest_cycle_judged],['passed soft cut',f.after_soft??'—'],['tokens in/out',ts?`${ts.input_tokens}/${ts.output_tokens}`:'—'],['est. cost',ts?'$'+Number(ts.est_cost_usd).toFixed(6):'—']]));
   const rk=s.procs&&s.procs.risk;
   P.push(panel('RISK',rk?(open.length?'ok':'ok'):'bad',open.length?esc(open[0].symbol):'flat',(open.length?`${open.length} open (${esc(open[0].mode)})`:'no open position')+' · risk loop '+(rk?'running':'NOT running'),[
-   ['exit: vol ratio <',T.RISK_VOL_RATIO_MIN??'—'],['exit: drawdown',T.RISK_MAX_DRAWDOWN!=null?(T.RISK_MAX_DRAWDOWN*100)+'%':'—'],['protection',T.TRIGGER_PROTECT?'Jupiter OCO −'+Math.round(T.RISK_MAX_DRAWDOWN*100)+'%/+'+Math.round(T.TRIGGER_TP_GAIN*100)+'%':'risk loop only'],['stop floor',usd(T.STOP_FLOOR_USD)],['max ticket',usd(T.MAX_TICKET_USD)]]));
+   ['exit: vol ratio <',T.RISK_VOL_RATIO_MIN??'—'],['exit: drawdown',T.RISK_MAX_DRAWDOWN!=null?(T.RISK_MAX_DRAWDOWN*100)+'%':'—'],['protection',T.TRIGGER_PROTECT?'Jupiter OCO −'+Math.round(T.RISK_MAX_DRAWDOWN*100)+'%/+'+Math.round(T.TRIGGER_TP_GAIN*100)+'%':'risk loop only'],['trailing exit',T.TRAIL_DROP!=null?'−'+Math.round(T.TRAIL_DROP*100)+'% from peak after +'+Math.round(T.TRAIL_ARM_GAIN*100)+'%':'off'],['stop floor',usd(T.STOP_FLOOR_USD)],['max ticket',usd(T.MAX_TICKET_USD)]]));
   const cr=s.crawler||{}, cl=cr.latest, ct=cr.totals||{};
   if(!cl){P.push(panel('CRAWLER','warn','waiting','crawler installed · status appears after the next cycle',[['no-social size',T.NO_SOCIAL_CUT!=null?'×'+T.NO_SOCIAL_CUT:'—']]));}
   else{
@@ -294,6 +294,8 @@ function renderLive(s,T,armed){
   <div class="kv"><span>entry</span><b>${usd2(p.usd_in)} @ ${p.entry_price!=null?Number(p.entry_price).toPrecision(4):'—'}</b></div>
   <div class="kv"><span>current value</span><b>${usd2(cur)} ${mk&&mk.price!=null?'@ '+Number(mk.price).toPrecision(4):''}</b></div>
   <div class="kv"><span>volume ratio (h6 ÷ h24/4)</span><b class="${ratio!=null&&ratio<T.RISK_VOL_RATIO_MIN?'neg':'pos'}">${ratio==null?'—':ratio.toFixed(2)} vs exit ${T.RISK_VOL_RATIO_MIN}</b></div>
+  <div class="kv"><span>Jupiter OCO</span><b>stop ${p.usd_in!=null?usd2(p.usd_in*(1-T.RISK_MAX_DRAWDOWN)):'—'} / TP ${p.usd_in!=null?usd2(p.usd_in*(1+T.TRIGGER_TP_GAIN)):'—'}</b></div>
+  <div class="kv"><span>trailing exit</span><b>arms at ${p.usd_in!=null?usd2(p.usd_in*(1+T.TRAIL_ARM_GAIN)):'—'}, then −${Math.round(T.TRAIL_DROP*100)}% from peak</b></div>
   <div class="kv"><span>drawdown exit at</span><b>${p.usd_in!=null?usd2(p.usd_in*(1-T.RISK_MAX_DRAWDOWN)):'—'}</b></div>
   <div class="kv"><span>risk loop</span><b>${s.procs&&s.procs.risk?'running':'<span class="neg">NOT running</span>'}</b></div>
   ${s.risk_log.length?`<div class="sub">${esc(s.risk_log[s.risk_log.length-1])}</div>`:''}${mk&&mk.error?`<div class="sub neg">market data: ${esc(mk.error)}</div>`:''}`;}
