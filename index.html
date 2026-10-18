@@ -121,7 +121,7 @@ const Floor=(()=>{
   ctx.font=(W<500?8:10)+'px ui-monospace,Menlo,monospace';ctx.textAlign='center';
   if(!meta){ctx.fillStyle='#a0789a';ctx.fillText('no cycles yet',W/2,H/2);}
   else{
-   const done=tt>chips.length*0.12+7;
+   const done=tt>chips.length*0.12+5;
    ST.forEach(([n],i)=>{ctx.fillStyle='#ff6ec7';ctx.fillText(n,sx[i],14);ctx.fillStyle='#fff';
     const c=meta.counts[i];ctx.fillText(i===5?(c?'1 order':'0 orders'):String(c),sx[i],26);
     if(i>=1&&i<=4){const k=meta.counts[i-1]-meta.counts[i];if(k>0){ctx.fillStyle='#ff4d6d';const r=top(meta.rej,PREF[i]),nar=W<560;ctx.fillText('−'+k+(r?' '+r.slice(0,nar?10:16):''),sx[i],nar&&i%2===0?H-18:H-6);}}
@@ -217,7 +217,7 @@ function _render(s){
    ['tokens judged',s.latest_cycle_judged],['passed soft cut',f.after_soft??'—'],['tokens in/out',ts?`${ts.input_tokens}/${ts.output_tokens}`:'—'],['est. cost',ts?'$'+Number(ts.est_cost_usd).toFixed(6):'—']]));
   const rk=s.procs&&s.procs.risk;
   P.push(panel('RISK',rk?(open.length?'ok':'ok'):'bad',open.length?esc(open[0].symbol):'flat',(open.length?`${open.length} open (${esc(open[0].mode)})`:'no open position')+' · risk loop '+(rk?'running':'NOT running'),[
-   ['exit: vol ratio <',T.RISK_VOL_RATIO_MIN??'—'],['exit: drawdown',T.RISK_MAX_DRAWDOWN!=null?(T.RISK_MAX_DRAWDOWN*100)+'%':'—'],['stop floor',usd(T.STOP_FLOOR_USD)],['max ticket',usd(T.MAX_TICKET_USD)]]));
+   ['exit: vol ratio <',T.RISK_VOL_RATIO_MIN??'—'],['exit: drawdown',T.RISK_MAX_DRAWDOWN!=null?(T.RISK_MAX_DRAWDOWN*100)+'%':'—'],['protection',T.TRIGGER_PROTECT?'Jupiter OCO −'+Math.round(T.RISK_MAX_DRAWDOWN*100)+'%/+'+Math.round(T.TRIGGER_TP_GAIN*100)+'%':'risk loop only'],['stop floor',usd(T.STOP_FLOOR_USD)],['max ticket',usd(T.MAX_TICKET_USD)]]));
   const cr=s.crawler||{}, cl=cr.latest, ct=cr.totals||{};
   if(!cl){P.push(panel('CRAWLER','warn','waiting','crawler installed · status appears after the next cycle',[['no-social size',T.NO_SOCIAL_CUT!=null?'×'+T.NO_SOCIAL_CUT:'—']]));}
   else{
