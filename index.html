@@ -88,6 +88,7 @@ pre.report{white-space:pre-wrap;overflow-wrap:anywhere;font:11.5px/1.45 ui-monos
 .tcard{border:1px dashed #c9b6ff66;border-radius:8px;padding:8px 10px;margin:2px 0 8px;background:#c9b6ff0a}
 .tcard .hd{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-weight:700;color:#fff}
 .b-test{display:inline-block;padding:1px 7px;border-radius:3px;font-size:10px;letter-spacing:2px;background:#2a1d5a;color:#c9b6ff;border:1px solid #c9b6ff}
+.b-learn{display:inline-block;padding:1px 7px;border-radius:3px;font-size:10px;letter-spacing:2px;background:#3a2a05;color:#f5c542;border:1px solid #f5c542;margin-right:5px}
 .tgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px 10px;margin:6px 0}@media(max-width:620px){.tgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .tgrid div{min-width:0}.tgrid b{display:block;color:#fff;font-size:13px}.tsigs{display:flex;flex-wrap:wrap;gap:4px 8px;font-size:11px}
 .tsigs a{white-space:nowrap;padding:1px 6px;border:1px solid var(--edge);border-radius:10px;text-decoration:none}
@@ -117,7 +118,7 @@ pre.report{white-space:pre-wrap;overflow-wrap:anywhere;font:11.5px/1.45 ui-monos
   <div class="card"><h2>PERFORMANCE · LIVE <span class="sub">vs buy-and-hold SOL</span></h2><div id="perfbody"></div></div>
   <div class="card"><h2>DESK STATE <span class="sub">view-only</span></h2><div id="ksbody"></div></div>
  </div>
- <div class="card"><h2>TRADE HISTORY <span class="sub">live + TEST trades</span></h2><div class="tablewrap" id="trades" style="max-height:520px"></div></div>
+ <div class="card"><h2>TRADE HISTORY <span class="sub">live + TEST trades · <span class="b-learn">LEARNING</span>= bought under learning mode (looser momentum / no social, min ticket)</span></h2><div class="tablewrap" id="trades" style="max-height:520px"></div></div>
  <div class="row2">
   <div class="card"><h2>🔮 THE ORACLE · LATEST JUDGED TOKENS <span class="sub">Jev judge · raw answers</span></h2><div class="tablewrap" id="judged"></div></div>
   <div class="card"><h2>LIVE LOG <span class="sub">cycle log tail</span></h2><pre id="log"></pre></div>
@@ -406,7 +407,7 @@ function render(s){_render(s);try{Floor.update(s);Tick()}catch(e){console.warn(e
 function _render(s){
  S=s; const L=s.latest, st=L?L.stats:{}, f=st.funnel||{}, rej=st.rejections||{}, T=s.thresholds||{};
  const armed=T.ARMED===true&&!s.disarm_file;
- document.getElementById('mode').innerHTML=armed?'<span class="badge b-armed">ARMED · LIVE ORDERS ON</span>':(T.ARMED===true&&s.disarm_file?'<span class="badge b-shadow">ARMED in config</span><span class="badge b-armed">DISARMED · DISARM file — no new buys</span>':'<span class="badge b-shadow">SHADOW · ARMED=False · NO TRADES</span>');
+ document.getElementById('mode').innerHTML=armed?'<span class="badge b-armed">ARMED · LIVE ORDERS ON</span>':(T.ARMED===true&&s.disarm_file?'<span class="badge b-shadow">ARMED in config</span><span class="badge b-armed">DISARMED · DISARM file — no new buys</span>':'<span class="badge b-shadow">SHADOW · ARMED=False · NO TRADES</span>')+(T.LEARNING_MODE===true?`<span class="badge b-learn" title="momentum up to ${T.LEARNING_MOMENTUM_MAX}; no-social picks buy the minimum ticket; max ${T.LEARNING_MAX_BUYS_PER_DAY} learning buys/day">LEARNING MODE</span>`:'');
  renderLive(s,T,armed);
  freshness();
  const stale=L?(Date.now()/1000-L.ts)>40*60:true;
@@ -539,7 +540,7 @@ function renderLive(s,T,armed){
  if(!tr.length)tb.innerHTML=testCards(s)+'<div class="empty">No live trades yet.</div>';
  else{let t='<table><tr><th class="l">opened PT</th><th class="l">token</th><th>in</th><th>out</th><th>P&amp;L</th><th>%</th><th class="l">status</th><th class="l">closed PT</th><th class="l">reason</th><th class="l">txs</th></tr>';
   for(const x of tr){const pl=x.usd_out!=null&&x.usd_in!=null?x.usd_out-x.usd_in:null;
-   t+=`<tr><td>${fmtT(x.ts)}</td><td class="l"><a target="_blank" rel="noopener" href="https://solscan.io/token/${esc(x.token)}">${esc(x.symbol)}</a></td><td>${usd2(x.usd_in)}</td><td>${usd2(x.usd_out)}</td><td class="${pl>0?'pos':pl<0?'neg':''}">${usd2(pl)}</td><td>${pl==null?'—':pct(pl/x.usd_in)}</td><td class="l">${esc(x.status)}</td><td class="l">${x.closed_ts?fmtT(x.closed_ts):'—'}</td><td class="l">${esc(x.close_reason||'')}</td><td class="l">${x.buy_sig?`<a target="_blank" rel="noopener" href="https://solscan.io/tx/${esc(x.buy_sig)}">buy</a>`:''} ${x.sell_sig?`<a target="_blank" rel="noopener" href="https://solscan.io/tx/${esc(x.sell_sig)}">sell</a>`:''}</td></tr>`;}
+   t+=`<tr><td>${fmtT(x.ts)}</td><td class="l">${x.tag==='learning'?`<span class="b-learn" title="${esc(x.entry_why||'learning-mode buy')}">LEARNING</span>`:''}<a target="_blank" rel="noopener" href="https://solscan.io/token/${esc(x.token)}">${esc(x.symbol)}</a>${x.tag==='learning'&&x.entry_why?`<div class="sub" style="white-space:normal;max-width:340px">${esc(x.entry_why)}</div>`:''}</td><td>${usd2(x.usd_in)}</td><td>${usd2(x.usd_out)}</td><td class="${pl>0?'pos':pl<0?'neg':''}">${usd2(pl)}</td><td>${pl==null?'—':pct(pl/x.usd_in)}</td><td class="l">${esc(x.status)}</td><td class="l">${x.closed_ts?fmtT(x.closed_ts):'—'}</td><td class="l">${esc(x.close_reason||'')}</td><td class="l">${x.buy_sig?`<a target="_blank" rel="noopener" href="https://solscan.io/tx/${esc(x.buy_sig)}">buy</a>`:''} ${x.sell_sig?`<a target="_blank" rel="noopener" href="https://solscan.io/tx/${esc(x.sell_sig)}">sell</a>`:''}</td></tr>`;}
   tb.innerHTML=testCards(s)+t+'</table>';}
 }
 async function load(){try{const r=await fetch('data.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error(r.status);render(await r.json());}catch(e){document.getElementById('upd').textContent='refresh failed ('+e.message+') — retrying';}}
