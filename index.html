@@ -92,6 +92,11 @@ pre.report{white-space:pre-wrap;overflow-wrap:anywhere;font:11.5px/1.45 ui-monos
 .tgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px 10px;margin:6px 0}@media(max-width:620px){.tgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .tgrid div{min-width:0}.tgrid b{display:block;color:#fff;font-size:13px}.tsigs{display:flex;flex-wrap:wrap;gap:4px 8px;font-size:11px}
 .tsigs a{white-space:nowrap;padding:1px 6px;border:1px solid var(--edge);border-radius:10px;text-decoration:none}
+.cbcard{border-color:#7b5cff;box-shadow:inset 0 0 26px #7b5cff22,0 0 0 1px #f5c54214}.cbl{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;margin-top:6px}
+.cbi{background:#ffffff08;border:1px solid #4a3a8f;border-radius:8px;padding:7px 9px}.cbi .hd{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.cbi .sc{font-weight:700;color:#f5c542}.cbi ul{margin:4px 0 0 16px;padding:0;font-size:11.5px;color:#d9c8ff}.cbi .tr{font-size:11px;color:#9ef0c8;margin-top:3px}
+.orb{display:inline-block;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#b48cff 45%,#3a1868);box-shadow:0 0 8px #b48cff;margin-right:5px}
+@media(max-width:620px){.cbl{grid-template-columns:1fr}}
 </style></head><body>
 <header><div class="brand"><svg class="logo" viewBox="0 0 64 56" aria-hidden="true"><defs><linearGradient id="lb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6a35a8"/><stop offset="1" stop-color="#3a1868"/></linearGradient><linearGradient id="lr" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#f5c542" stop-opacity=".75"/><stop offset="1" stop-color="#f5c542" stop-opacity="0"/></linearGradient></defs><path class="rays" d="M18 24 L6 0 H58 L46 24Z" fill="url(#lr)"/><path d="M12 26 L52 26 L48 16 L16 16Z" fill="#4b2280" stroke="#f5c542" stroke-width="1.6"/><rect x="8" y="26" width="48" height="26" rx="3" fill="url(#lb)" stroke="#f5c542" stroke-width="1.6"/><rect x="20" y="26" width="3" height="26" fill="#f5c542"/><rect x="41" y="26" width="3" height="26" fill="#f5c542"/><rect x="28" y="29" width="8" height="8" rx="2" fill="#f5c542"/><path class="tw" d="M54 6q0 4 4 4q-4 0-4 4q0-4-4-4q4 0 4-4Z" fill="#fff6c8"/><path class="tw t2" d="M8 4q0 3 3 3q-3 0-3 3q0-3-3-3q3 0 3-3Z" fill="#f5c542"/></svg><div><h1>Magic Money Box<span class="spark">✦</span></h1><div class="sub">memecoin desk · public view-only mirror · no controls</div></div></div>
 <div class="meta"><div id="mode"></div><div id="upd">loading…</div></div></header>
@@ -107,6 +112,7 @@ pre.report{white-space:pre-wrap;overflow-wrap:anywhere;font:11.5px/1.45 ui-monos
   <div class="card mcard"><h2>📜 NIGHTLY REPORT <span class="sub" id="nrts"></span></h2><div id="nrbody"><div class="empty">loading…</div></div></div>
  </div>
  <div class="card mcard"><h2>📊 WEEKLY SCORECARD <span class="sub" id="wsts"></span></h2><div id="wsbody"><div class="empty">loading…</div></div></div>
+ <div class="card mcard cbcard"><h2>🔮 CRYSTAL BALL · PRE-PUSH WATCHLIST <span class="sub" id="cbts"></span></h2><div id="cbbody"><div class="empty">loading…</div></div></div>
  <div class="row6" id="panels"></div>
  <div class="row3">
   <div class="card"><h2>BALANCE <span class="sub" id="baladdr"></span></h2><div id="balbody"></div></div>
@@ -114,7 +120,7 @@ pre.report{white-space:pre-wrap;overflow-wrap:anywhere;font:11.5px/1.45 ui-monos
   <div class="card"><h2>REJECTIONS <span class="sub"><label><input type="checkbox" id="rejall"> all cycles</label></span></h2><div class="chartbox"><canvas id="rej"></canvas></div><div id="rejempty"></div></div>
  </div>
  <div class="row3b">
-  <div class="card"><h2>OPEN POSITION <span class="dot" id="posdot"></span></h2><div id="posbody"></div></div>
+  <div class="card"><h2>OPEN POSITIONS <span class="dot" id="posdot"></span></h2><div id="posbody"></div></div>
   <div class="card"><h2>PERFORMANCE · LIVE <span class="sub">vs buy-and-hold SOL</span></h2><div id="perfbody"></div></div>
   <div class="card"><h2>DESK STATE <span class="sub">view-only</span></h2><div id="ksbody"></div></div>
  </div>
@@ -380,13 +386,31 @@ const Magic=(()=>{
   if(w.text)h+=`<details><summary class="sub">full week-so-far text</summary><pre class="report">${E(w.text)}</pre></details>`;
   if(w.last_sent_text)h+=`<details><summary class="sub">last scorecard sent ${tPT(w.last_sent_ts)}</summary><pre class="report">${E(w.last_sent_text)}</pre></details>`;
   set('wsbody',h);}
+ function crystal(cb){
+  if(bad(cb))return set('cbbody',note('The Crystal Ball fills up after the next desk cycle.')),set('cbts','');
+  if(cb.error)return set('cbbody',err(cb)),set('cbts','');
+  const lc=cb.last_cycle||{}, ru=cb.rules||{};
+  set('cbts',`${cb.watching||0} watched`+(lc.ts?' · scanned '+hm(lc.ts):''));
+  let h=`<div class="plain">Every cycle the box scans Solana coins of <b>any age</b> for a setup <b>before</b> a move: volume rising vs the coin's own pace while price is flat, more unique buyers than sellers, holders growing, liquidity added, basing / higher lows, dip-then-recover, and (for top picks) X mention velocity. When a trigger fires it goes through every normal safety check and the judge. Coins already up more than ${E(ru.entry_max_run_pct??40)}% in 1-6h are never bought.</div>`;
+  const g=cb.graded||{}, gp=g.promoted||{}, gw=g.watch||{};
+  h+='<div class="two"><div>'+kv('watching now',cb.watching??0)+kv('joined (24h)',cb.joined_24h??0)+kv('promoted (24h)',(cb.promotions_24h||[]).length)+'</div><div>'
+   +kv('graded: watched coins',gw.measured?`${gw.measured} · <span class="pos">${gw.winners} doubled</span> · <span class="neg">${gw.dodged} crashed</span>`:'<span class="sub">first grades in ~1h</span>')
+   +kv('graded: promotions',gp.measured?`${gp.measured} · <span class="pos">${gp.winners} doubled</span> · <span class="neg">${gp.dodged} crashed</span>`:'<span class="sub">none yet</span>')+'</div></div>';
+  const pr=cb.promotions_24h||[];
+  if(pr.length)h+='<div class="mini" style="margin-top:6px">PROMOTIONS · 24H</div>'+pr.map(p=>`<div class="kv"><span><span class="orb"></span>${E(p.symbol)} <span class="sub">${hm(p.promoted_ts)} · ${E(p.trigger||'')}</span></span><b>${E(p.promote_outcome||'')}</b></div>`).join('');
+  const top=cb.top||[];
+  h+='<div class="mini" style="margin-top:6px">TOP OF THE WATCHLIST</div>'+(top.length?'<div class="cbl">'+top.slice(0,12).map(r=>{const sg=r.signals||{};
+    return `<div class="cbi"><div class="hd"><span><span class="orb"></span><a target="_blank" rel="noopener" href="https://dexscreener.com/solana/${E(r.token)}">${E(r.symbol)}</a> <span class="sub">${E(r.status==='promoted'?'PROMOTED':'')}</span></span><span class="sc">${Math.round(r.score)}</span></div>`
+    +`<div class="sub">watched ${Math.max(1,Math.round(((r.last_ts||0)-(r.first_ts||0))/60))} min · ${r.checks} checks · since join ${r.since_join_pct==null?'—':(r.since_join_pct>=0?'+':'')+r.since_join_pct+'%'} · h1 ${sg.h1==null?'—':(sg.h1>=0?'+':'')+(+sg.h1).toFixed(0)+'%'} · liq ${sg.liq?'$'+Math.round(sg.liq/1000)+'K':'—'}</div>`
+    +`<ul>${(r.reasons||[]).slice(0,4).map(x=>`<li>${E(x)}</li>`).join('')}</ul>${r.trigger?`<div class="tr">last trigger: ${E(r.trigger)} → ${E(r.promote_outcome||'')}</div>`:''}</div>`}).join('')+'</div>':'<div class="sub">nothing on the list yet</div>');
+  set('cbbody',h);}
  return{update(s){if(!s)return;const now=s.server_time||Date.now()/1000;
-  for(const [fn,k] of [[scoreboard,'scoreboard'],[limit,'daily_limit'],[speed,'latency'],[sells,'sell_tests'],[nightly,'nightly_report'],[weekly,'weekly_scorecard']]){
+  for(const [fn,k] of [[crystal,'crystal_ball'],[scoreboard,'scoreboard'],[limit,'daily_limit'],[speed,'latency'],[sells,'sell_tests'],[nightly,'nightly_report'],[weekly,'weekly_scorecard']]){
    try{fn(s[k],now)}catch(e){console.warn(k,e)}}}};
 })();
 
 /* self-update: if a newer index.html is published, reload once (Pages caches the page up to 10 min) */
-const SITE_BUILD='20261017-2120';
+const SITE_BUILD='20261019-1730';
 setInterval(async()=>{try{const r=await fetch('index.html?b='+Date.now(),{cache:'no-store'});if(!r.ok)return;const m=(await r.text()).match(/SITE_BUILD='([^']+)'/);if(m&&m[1]!==SITE_BUILD&&!sessionStorage.getItem('rl'+m[1])){sessionStorage.setItem('rl'+m[1],1);location.reload();}}catch(e){}},300000);
 const TZ='America/Los_Angeles';
 const fmtT=ts=>ts?new Date(ts*1000).toLocaleString('en-US',{timeZone:TZ,month:'short',day:'numeric',hour:'numeric',minute:'2-digit',second:'2-digit'})+' PT':'—';
@@ -506,7 +530,7 @@ function renderLive(s,T,armed){
  const p=s.open_position, mk=(s.balance_state&&s.balance_state.live&&s.balance_state.live.position_market)||null, live=s.balance_state&&s.balance_state.live;
  const pb=document.getElementById('posbody'), dot=document.getElementById('posdot');
  if(!p){dot.className='dot off';pb.innerHTML=`<div class="big">flat</div><div class="sub">No live position open.</div><div class="kv"><span>risk loop</span><b>${s.procs&&s.procs.risk?'running':'<span class="neg">NOT running</span>'}</b></div><div class="kv"><span>exit rule</span><b>vol ratio &lt; ${T.RISK_VOL_RATIO_MIN} or -${pct(T.RISK_MAX_DRAWDOWN)}</b></div><div class="kv"><span>polls every</span><b>${T.RISK_POLL_SEC??'—'}s</b></div>`+(s.risk_log.length?`<div class="sub" style="margin-top:6px">${esc(s.risk_log[s.risk_log.length-1])}</div>`:'');}
- else{const cur=live&&live.pos_usd, pnl=cur!=null&&p.usd_in!=null?cur-p.usd_in:null, ratio=mk&&mk.ratio;
+ else{const cur=(live&&live.position_markets&&live.position_markets[p.token]&&live.position_markets[p.token].value_usd!=null)?live.position_markets[p.token].value_usd:(live&&live.pos_usd), pnl=cur!=null&&p.usd_in!=null?cur-p.usd_in:null, ratio=mk&&mk.ratio;
   dot.className='dot '+(ratio!=null&&ratio<T.RISK_VOL_RATIO_MIN?'bad':'ok');
   pb.innerHTML=`<div class="big">${esc(p.symbol)} <span class="${pnl>=0?'pos':'neg'}" style="font-size:16px">${pnl==null?'':(pnl>=0?'+':'')+usd2(pnl)+' ('+pct(pnl/p.usd_in)+')'}</span></div>
   <div class="sub">opened ${fmtT(p.ts)} · <a target="_blank" rel="noopener" href="https://solscan.io/token/${esc(p.token)}">token</a>${p.buy_sig?` · <a target="_blank" rel="noopener" href="https://solscan.io/tx/${esc(p.buy_sig)}">buy tx</a>`:''}${mk&&mk.url?` · <a target="_blank" rel="noopener" href="${esc(mk.url)}">chart</a>`:''}</div>
@@ -518,6 +542,12 @@ function renderLive(s,T,armed){
   <div class="kv"><span>drawdown exit at</span><b>${p.usd_in!=null?usd2(p.usd_in*(1-T.RISK_MAX_DRAWDOWN)):'—'}</b></div>
   <div class="kv"><span>risk loop</span><b>${s.procs&&s.procs.risk?'running':'<span class="neg">NOT running</span>'}</b></div>
   ${s.risk_log.length?`<div class="sub">${esc(s.risk_log[s.risk_log.length-1])}</div>`:''}${mk&&mk.error?`<div class="sub neg">market data: ${esc(mk.error)}</div>`:''}`;}
+ const ops=s.open_positions||[], pms=(live&&live.position_markets)||{};
+ if(ops.length>1){let h=`<div class="mini" style="margin-top:8px">ALL OPEN POSITIONS · ${ops.length}/${T.MAX_OPEN_POSITIONS??3}</div>`;
+  for(const q of ops){const m=pms[q.token]||{}, v=m.value_usd, pl=v!=null&&q.usd_in!=null?v-q.usd_in:null;
+   h+=`<div class="kv"><span>${q.tag==='learning'?'<span class="b-learn">L</span>':''}<a target="_blank" rel="noopener" href="https://solscan.io/token/${esc(q.token)}">${esc(q.symbol)}</a> <span class="sub">${fmtS(q.ts)} · in ${usd2(q.usd_in)}${m.ratio!=null?' · vol ratio '+(+m.ratio).toFixed(2):''}</span></span><b class="${pl>0?'pos':pl<0?'neg':''}">${v==null?'—':usd2(v)}${pl==null?'':' ('+pct(pl/q.usd_in)+')'}</b></div>`;}
+  pb.innerHTML+=h;}
+
  const pf=s.perf||{};
  let h=`<div class="kv"><span>closed trades</span><b>${pf.closed_trades??0}${pf.open_trades?' (+'+pf.open_trades+' open)':''}</b></div>
  <div class="kv"><span>realized P&amp;L</span><b class="${pf.realized_pnl>0?'pos':pf.realized_pnl<0?'neg':''}">${pf.realized_pnl==null?'— no closed trades':usd2(pf.realized_pnl)}</b></div>
