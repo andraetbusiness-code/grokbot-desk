@@ -94,7 +94,7 @@ pre.report{white-space:pre-wrap;overflow-wrap:anywhere;font:11.5px/1.45 ui-monos
 .tsigs a{white-space:nowrap;padding:1px 6px;border:1px solid var(--edge);border-radius:10px;text-decoration:none}
 .cbcard{border-color:#7b5cff;box-shadow:inset 0 0 26px #7b5cff22,0 0 0 1px #f5c54214}.cbl{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;margin-top:6px}
 .cbi{background:#ffffff08;border:1px solid #4a3a8f;border-radius:8px;padding:7px 9px}.cbi .hd{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
-.cbi .sc{font-weight:700;color:#f5c542}.whale{font-size:11px;color:#7fd6ff;margin-left:4px}.msi{border-top:1px solid #ffffff14;padding:5px 0}.msi .hd{display:flex;justify-content:space-between;gap:6px;align-items:baseline}.msi .sc{font-weight:700}.msi .dr{font-size:11.5px;color:#d9c8ff}.msi .wd{font-size:11.5px}.cbi ul{margin:4px 0 0 16px;padding:0;font-size:11.5px;color:#d9c8ff}.cbi .tr{font-size:11px;color:#9ef0c8;margin-top:3px}
+.cbi .sc{font-weight:700;color:#f5c542}.nowline{font-size:15px;margin:4px 0 6px;padding:6px 8px;border-radius:8px;background:#ffffff0d}.whale{font-size:11px;color:#7fd6ff;margin-left:4px}.msi{border-top:1px solid #ffffff14;padding:5px 0}.msi .hd{display:flex;justify-content:space-between;gap:6px;align-items:baseline}.msi .sc{font-weight:700}.msi .dr{font-size:11.5px;color:#d9c8ff}.msi .wd{font-size:11.5px}.cbi ul{margin:4px 0 0 16px;padding:0;font-size:11.5px;color:#d9c8ff}.cbi .tr{font-size:11px;color:#9ef0c8;margin-top:3px}
 .cbw{margin-top:5px;font-size:13px;color:#fff6c8;line-height:1.35}.cbt{margin-top:3px;font-size:12px;color:#9ef0c8;line-height:1.35}.cbd summary{cursor:pointer;font-size:11px;color:var(--dim);margin-top:4px}.cbd ul{margin-top:2px}
 .orb{display:inline-block;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#b48cff 45%,#3a1868);box-shadow:0 0 8px #b48cff;margin-right:5px}
 @media(max-width:620px){.cbl{grid-template-columns:1fr}}
@@ -431,7 +431,7 @@ const Magic=(()=>{
 })();
 
 /* self-update: if a newer index.html is published, reload once (Pages caches the page up to 10 min) */
-const SITE_BUILD='20261019-1830';
+const SITE_BUILD='20261019-1900';
 setInterval(async()=>{try{const r=await fetch('index.html?b='+Date.now(),{cache:'no-store'});if(!r.ok)return;const m=(await r.text()).match(/SITE_BUILD='([^']+)'/);if(m&&m[1]!==SITE_BUILD&&!sessionStorage.getItem('rl'+m[1])){sessionStorage.setItem('rl'+m[1],1);location.reload();}}catch(e){}},300000);
 const TZ='America/Los_Angeles';
 const fmtT=ts=>ts?new Date(ts*1000).toLocaleString('en-US',{timeZone:TZ,month:'short',day:'numeric',hour:'numeric',minute:'2-digit',second:'2-digit'})+' PT':'—';
@@ -551,12 +551,16 @@ function renderLive(s,T,armed){
  const p=s.open_position, mk=(s.balance_state&&s.balance_state.live&&s.balance_state.live.position_market)||null, live=s.balance_state&&s.balance_state.live;
  const pb=document.getElementById('posbody'), dot=document.getElementById('posdot');
  if(!p){dot.className='dot off';pb.innerHTML=`<div class="big">flat</div><div class="sub">No live position open.</div><div class="kv"><span>risk loop</span><b>${s.procs&&s.procs.risk?'running':'<span class="neg">NOT running</span>'}</b></div><div class="kv"><span>exit rule</span><b>vol ratio &lt; ${T.RISK_VOL_RATIO_MIN} or -${pct(T.RISK_MAX_DRAWDOWN)}</b></div><div class="kv"><span>polls every</span><b>${T.RISK_POLL_SEC??'—'}s</b></div>`+(s.risk_log.length?`<div class="sub" style="margin-top:6px">${esc(s.risk_log[s.risk_log.length-1])}</div>`:'');}
- else{const cur=(live&&live.position_markets&&live.position_markets[p.token]&&live.position_markets[p.token].value_usd!=null)?live.position_markets[p.token].value_usd:(live&&live.pos_usd), pnl=cur!=null&&p.usd_in!=null?cur-p.usd_in:null, ratio=mk&&mk.ratio;
+ else{const pn=p.now||{}, cur=pn.value_usd!=null?pn.value_usd:(live&&live.position_markets&&live.position_markets[p.token]&&live.position_markets[p.token].value_usd!=null)?live.position_markets[p.token].value_usd:(live&&live.pos_usd), pnl=cur!=null&&p.usd_in!=null?cur-p.usd_in:null, ratio=mk&&mk.ratio;
   dot.className='dot '+(ratio!=null&&ratio<T.RISK_VOL_RATIO_MIN?'bad':'ok');
   pb.innerHTML=`<div class="big">${esc(p.symbol)} <span class="${pnl>=0?'pos':'neg'}" style="font-size:16px">${pnl==null?'':(pnl>=0?'+':'')+usd2(pnl)+' ('+pct(pnl/p.usd_in)+')'}</span></div>
+  <div class="nowline">${esc(p.symbol)}: ${usd2(p.usd_in)} in → <b>${cur==null?'price unavailable':usd2(cur)+' now'}</b>${pnl==null?'':`, <b class="${pnl>=0?'pos':'neg'}">${(pnl>=0?'+':'')+usd2(pnl)} (${pnl>=0?'+':''}${(pnl/p.usd_in*100).toFixed(0)}%)</b>`}<div class="sub">${pn.updated_ts?'price updated '+fmtT(pn.updated_ts)+' · '+esc(pn.price_src||''):'no live price in this snapshot'}</div></div>
   <div class="sub">opened ${fmtT(p.ts)} · <a target="_blank" rel="noopener" href="https://solscan.io/token/${esc(p.token)}">token</a>${p.buy_sig?` · <a target="_blank" rel="noopener" href="https://solscan.io/tx/${esc(p.buy_sig)}">buy tx</a>`:''}${mk&&mk.url?` · <a target="_blank" rel="noopener" href="${esc(mk.url)}">chart</a>`:''}</div>
   <div class="kv"><span>entry</span><b>${usd2(p.usd_in)} @ ${p.entry_price!=null?Number(p.entry_price).toPrecision(4):'—'}</b></div>
-  <div class="kv"><span>current value</span><b>${usd2(cur)} ${mk&&mk.price!=null?'@ '+Number(mk.price).toPrecision(4):''}</b></div>
+  <div class="kv"><span>current value</span><b>${usd2(cur)} ${pn.price!=null?'@ '+Number(pn.price).toPrecision(4):(mk&&mk.price!=null?'@ '+Number(mk.price).toPrecision(4):'')}</b></div>
+  <div class="kv"><span>stop (−${Math.round(T.RISK_MAX_DRAWDOWN*100)}%)</span><b class="neg">${pn.stop_value!=null?usd2(pn.stop_value)+' @ '+Number(pn.stop_price).toPrecision(4):(p.usd_in!=null?usd2(p.usd_in*(1-T.RISK_MAX_DRAWDOWN)):'—')}</b></div>
+  <div class="kv"><span>take profit (+${Math.round(T.TRIGGER_TP_GAIN*100)}%)</span><b class="pos">${pn.tp_value!=null?usd2(pn.tp_value)+' @ '+Number(pn.tp_price).toPrecision(4):(p.usd_in!=null?usd2(p.usd_in*(1+T.TRIGGER_TP_GAIN)):'—')}</b></div>
+  <div class="kv"><span>trailing stop</span><b>${pn.trail_armed?`<span class="pos">ARMED</span> · sells below ${usd2(pn.trail_exit_value)} @ ${Number(pn.trail_exit_price).toPrecision(4)} (peak ${Number(pn.peak_price).toPrecision(4)})`:`not armed · arms at ${pn.trail_arm_value!=null?usd2(pn.trail_arm_value):(p.usd_in!=null?usd2(p.usd_in*(1+T.TRAIL_ARM_GAIN)):'—')}`}</b></div>
   <div class="kv"><span>volume ratio (h6 ÷ h24/4)</span><b class="${ratio!=null&&ratio<T.RISK_VOL_RATIO_MIN?'neg':'pos'}">${ratio==null?'—':ratio.toFixed(2)} vs exit ${T.RISK_VOL_RATIO_MIN}</b></div>
   <div class="kv"><span>Jupiter OCO</span><b>stop ${p.usd_in!=null?usd2(p.usd_in*(1-T.RISK_MAX_DRAWDOWN)):'—'} / TP ${p.usd_in!=null?usd2(p.usd_in*(1+T.TRIGGER_TP_GAIN)):'—'}</b></div>
   <div class="kv"><span>trailing exit</span><b>arms at ${p.usd_in!=null?usd2(p.usd_in*(1+T.TRAIL_ARM_GAIN)):'—'}, then −${Math.round(T.TRAIL_DROP*100)}% from peak</b></div>
@@ -565,7 +569,7 @@ function renderLive(s,T,armed){
   ${s.risk_log.length?`<div class="sub">${esc(s.risk_log[s.risk_log.length-1])}</div>`:''}${mk&&mk.error?`<div class="sub neg">market data: ${esc(mk.error)}</div>`:''}`;}
  const ops=s.open_positions||[], pms=(live&&live.position_markets)||{};
  if(ops.length>1){let h=`<div class="mini" style="margin-top:8px">ALL OPEN POSITIONS · ${ops.length}/${T.MAX_OPEN_POSITIONS??3}</div>`;
-  for(const q of ops){const m=pms[q.token]||{}, v=m.value_usd, pl=v!=null&&q.usd_in!=null?v-q.usd_in:null;
+  for(const q of ops){const m=q.now||pms[q.token]||{}, v=m.value_usd, pl=v!=null&&q.usd_in!=null?v-q.usd_in:null;
    h+=`<div class="kv"><span>${q.tag==='learning'?'<span class="b-learn">L</span>':''}<a target="_blank" rel="noopener" href="https://solscan.io/token/${esc(q.token)}">${esc(q.symbol)}</a> <span class="sub">${fmtS(q.ts)} · in ${usd2(q.usd_in)}${m.ratio!=null?' · vol ratio '+(+m.ratio).toFixed(2):''}</span></span><b class="${pl>0?'pos':pl<0?'neg':''}">${v==null?'—':usd2(v)}${pl==null?'':' ('+pct(pl/q.usd_in)+')'}</b></div>`;}
   pb.innerHTML+=h;}
 
@@ -590,8 +594,8 @@ function renderLive(s,T,armed){
  const tr=s.trades||[], tb=document.getElementById('trades');
  if(!tr.length)tb.innerHTML=testCards(s)+'<div class="empty">No live trades yet.</div>';
  else{let t='<table><tr><th class="l">opened PT</th><th class="l">token</th><th>in</th><th>out</th><th>P&amp;L</th><th>%</th><th class="l">status</th><th class="l">closed PT</th><th class="l">reason</th><th class="l">txs</th></tr>';
-  for(const x of tr){const pl=x.usd_out!=null&&x.usd_in!=null?x.usd_out-x.usd_in:null;
-   t+=`<tr><td>${fmtT(x.ts)}</td><td class="l">${x.tag==='learning'?`<span class="b-learn" title="${esc(x.entry_why||'learning-mode buy')}">LEARNING</span>`:''}<a target="_blank" rel="noopener" href="https://solscan.io/token/${esc(x.token)}">${esc(x.symbol)}</a>${x.tag==='learning'&&x.entry_why?`<div class="sub" style="white-space:normal;max-width:340px">${esc(x.entry_why)}</div>`:''}</td><td>${usd2(x.usd_in)}</td><td>${usd2(x.usd_out)}</td><td class="${pl>0?'pos':pl<0?'neg':''}">${usd2(pl)}</td><td>${pl==null?'—':pct(pl/x.usd_in)}</td><td class="l">${esc(x.status)}</td><td class="l">${x.closed_ts?fmtT(x.closed_ts):'—'}</td><td class="l">${esc(x.close_reason||'')}</td><td class="l">${x.buy_sig?`<a target="_blank" rel="noopener" href="https://solscan.io/tx/${esc(x.buy_sig)}">buy</a>`:''} ${x.sell_sig?`<a target="_blank" rel="noopener" href="https://solscan.io/tx/${esc(x.sell_sig)}">sell</a>`:''}</td></tr>`;}
+  for(const x of tr){const xn=x.status==='live_open'&&x.now&&x.now.value_usd!=null?x.now:null, pl=x.usd_out!=null&&x.usd_in!=null?x.usd_out-x.usd_in:(xn?xn.value_usd-x.usd_in:null);
+   t+=`<tr><td>${fmtT(x.ts)}</td><td class="l">${x.tag==='learning'?`<span class="b-learn" title="${esc(x.entry_why||'learning-mode buy')}">LEARNING</span>`:''}<a target="_blank" rel="noopener" href="https://solscan.io/token/${esc(x.token)}">${esc(x.symbol)}</a>${x.tag==='learning'&&x.entry_why?`<div class="sub" style="white-space:normal;max-width:340px">${esc(x.entry_why)}</div>`:''}</td><td>${usd2(x.usd_in)}</td><td>${xn?'<b>'+usd2(xn.value_usd)+'</b><div class="sub">now</div>':usd2(x.usd_out)}</td><td class="${pl>0?'pos':pl<0?'neg':''}">${usd2(pl)}</td><td>${pl==null?'—':pct(pl/x.usd_in)}</td><td class="l">${esc(x.status)}</td><td class="l">${x.closed_ts?fmtT(x.closed_ts):'—'}</td><td class="l">${esc(x.close_reason||'')}</td><td class="l">${x.buy_sig?`<a target="_blank" rel="noopener" href="https://solscan.io/tx/${esc(x.buy_sig)}">buy</a>`:''} ${x.sell_sig?`<a target="_blank" rel="noopener" href="https://solscan.io/tx/${esc(x.sell_sig)}">sell</a>`:''}</td></tr>`;}
   tb.innerHTML=testCards(s)+t+'</table>';}
 }
 async function load(){try{const r=await fetch('data.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error(r.status);render(await r.json());}catch(e){document.getElementById('upd').textContent='refresh failed ('+e.message+') — retrying';}}
