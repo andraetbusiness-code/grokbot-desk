@@ -94,7 +94,7 @@ pre.report{white-space:pre-wrap;overflow-wrap:anywhere;font:11.5px/1.45 ui-monos
 .tsigs a{white-space:nowrap;padding:1px 6px;border:1px solid var(--edge);border-radius:10px;text-decoration:none}
 .cbcard{border-color:#7b5cff;box-shadow:inset 0 0 26px #7b5cff22,0 0 0 1px #f5c54214}.cbl{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;margin-top:6px}
 .cbi{background:#ffffff08;border:1px solid #4a3a8f;border-radius:8px;padding:7px 9px}.cbi .hd{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
-.cbi .sc{font-weight:700;color:#f5c542}.cbi ul{margin:4px 0 0 16px;padding:0;font-size:11.5px;color:#d9c8ff}.cbi .tr{font-size:11px;color:#9ef0c8;margin-top:3px}
+.cbi .sc{font-weight:700;color:#f5c542}.whale{font-size:11px;color:#7fd6ff;margin-left:4px}.msi{border-top:1px solid #ffffff14;padding:5px 0}.msi .hd{display:flex;justify-content:space-between;gap:6px;align-items:baseline}.msi .sc{font-weight:700}.msi .dr{font-size:11.5px;color:#d9c8ff}.msi .wd{font-size:11.5px}.cbi ul{margin:4px 0 0 16px;padding:0;font-size:11.5px;color:#d9c8ff}.cbi .tr{font-size:11px;color:#9ef0c8;margin-top:3px}
 .cbw{margin-top:5px;font-size:13px;color:#fff6c8;line-height:1.35}.cbt{margin-top:3px;font-size:12px;color:#9ef0c8;line-height:1.35}.cbd summary{cursor:pointer;font-size:11px;color:var(--dim);margin-top:4px}.cbd ul{margin-top:2px}
 .orb{display:inline-block;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#b48cff 45%,#3a1868);box-shadow:0 0 8px #b48cff;margin-right:5px}
 @media(max-width:620px){.cbl{grid-template-columns:1fr}}
@@ -114,6 +114,7 @@ pre.report{white-space:pre-wrap;overflow-wrap:anywhere;font:11.5px/1.45 ui-monos
  </div>
  <div class="card mcard"><h2>📊 WEEKLY SCORECARD <span class="sub" id="wsts"></span></h2><div id="wsbody"><div class="empty">loading…</div></div></div>
  <div class="card mcard cbcard"><h2>🔮 CRYSTAL BALL · PRE-PUSH WATCHLIST <span class="sub" id="cbts"></span></h2><div id="cbbody"><div class="empty">loading…</div></div></div>
+ <div class="card mcard"><h2>✨ MAGIC SCORE (TEST MODE) <span class="sub" id="msts"></span></h2><div id="msbody"><div class="empty">loading…</div></div></div>
  <div class="row6" id="panels"></div>
  <div class="row3">
   <div class="card"><h2>BALANCE <span class="sub" id="baladdr"></span></h2><div id="balbody"></div></div>
@@ -401,18 +402,36 @@ const Magic=(()=>{
   if(pr.length)h+='<div class="mini" style="margin-top:6px">PROMOTIONS · 24H</div>'+pr.map(p=>`<div class="kv"><span><span class="orb"></span>${E(p.symbol)} <span class="sub">${hm(p.promoted_ts)} · ${E(p.trigger||'')}</span></span><b>${E(p.promote_outcome||'')}</b></div>`).join('');
   const top=cb.top||[];
   h+='<div class="mini" style="margin-top:6px">TOP OF THE WATCHLIST</div>'+(top.length?'<div class="cbl">'+top.slice(0,12).map(r=>{const sg=r.signals||{};
-    return `<div class="cbi"><div class="hd"><span><span class="orb"></span><a target="_blank" rel="noopener" href="https://dexscreener.com/solana/${E(r.token)}">${E(r.symbol)}</a> <span class="sub">${E(r.status==='promoted'?'PROMOTED':'')}</span></span><span class="sc" title="setup score 0-100">score ${Math.round(r.score)}</span></div>`
+    return `<div class="cbi"><div class="hd"><span><span class="orb"></span><a target="_blank" rel="noopener" href="https://dexscreener.com/solana/${E(r.token)}">${E(r.symbol)}</a> <span class="sub">${E(r.status==='promoted'?'PROMOTED':'')}</span>${(r.smart_money||[]).length?`<span class="whale" title="tracked smart-money wallets holding it now: ${E(r.smart_money.join(', '))}">🐋 ${r.smart_money.length} smart wallet${r.smart_money.length>1?'s':''}</span>`:''}</span><span class="sc" title="setup score 0-100">score ${Math.round(r.score)}</span></div>`
     +`<div class="sub">watched ${Math.max(1,Math.round(((r.last_ts||0)-(r.first_ts||0))/60))} min · price since we started watching ${r.since_join_pct==null?'—':(r.since_join_pct>=0?'+':'')+r.since_join_pct+'%'} · last hour ${sg.h1==null?'—':(sg.h1>=0?'+':'')+(+sg.h1).toFixed(0)+'%'} · pool money ${sg.liq?'$'+Math.round(sg.liq/1000)+'K':'—'}</div>`
     +(r.why?`<div class="cbw">👁️ <b>Why we're watching:</b> ${E(r.why)}</div>`:'')+(r.waiting_for?`<div class="cbt">⏳ <b>Waiting for:</b> ${E(r.waiting_for)}</div>`:'')
     +`<details class="cbd"><summary>the details (${(r.reasons||[]).length})</summary><ul>${(r.reasons||[]).slice(0,6).map(x=>`<li>${E(x)}</li>`).join('')}</ul></details>${r.trigger?`<div class="tr">last trigger: ${E(r.trigger)} → ${E(r.promote_outcome||'')}</div>`:''}</div>`}).join('')+'</div>':'<div class="sub">nothing on the list yet</div>');
   set('cbbody',h);}
+ function magic(ms){
+  if(bad(ms))return set('msbody',note('The Magic Score appears after the next desk cycle.')),set('msts','');
+  if(ms.error)return set('msbody',err(ms)),set('msts','');
+  if(ms.mode==='off')return set('msbody',note('Magic Score is switched off.')),set('msts','');
+  const a=ms.agreement_24h||{}, c=ms.counts||{}, th=ms.thresholds||{};
+  set('msts',`${c.scored_24h||0} scored (24h)`);
+  const isb=w=>w==='buy'||w==='learning buy';
+  const col=v=>v>=(th.buy||65)?'pos':v>=(th.learning||55)?'':'neg';
+  let h=`<div class="plain"><b>Test mode: this score does not trade.</b> Every coin the desk checks gets one 0-100 score built from timing, volume, buyers vs sellers, holders, pool depth, X, 🐋 smart-money wallets, the judge and the Crystal Ball. ${th.buy||65}+ would buy, ${th.learning||55}-${th.buy||65} would make a small $11 learning buy. The current rules still make every real decision; this panel shows what the score <i>would</i> have done next to what the desk <i>did</i>.</div>`;
+  h+='<div class="two"><div>'+kv('agreement (24h)',a.n?`${a.agree_pct}% of ${a.n}`:'—')+kv('both would buy',a.both_buy??0)+kv('score only would buy',a.score_only??0)+kv('desk only bought',a.desk_only??0)+'</div><div>'
+   +kv('🐋 wallets tracked',ms.sm_wallets??0)+kv('🐋 checks today',ms.sm_calls_today??0)+kv('graded (live)',c.graded_live??0)+kv('graded (past coins)',c.backfill_graded??0)+'</div></div>';
+  const bands=(rows,lbl)=>{rows=(rows||[]).filter(b=>b.n);if(!rows.length)return'';return `<div class="mini" style="margin-top:6px">${lbl}</div><table class="mt"><tr><th class="l">score</th><th>coins</th><th>avg result</th><th>made money</th></tr>`+rows.map(b=>`<tr><td class="l">${E(b.band)}</td><td>${b.n}</td><td class="${(b.avg_ret_pct||0)>=0?'pos':'neg'}">${b.avg_ret_pct==null?'—':(b.avg_ret_pct>=0?'+':'')+b.avg_ret_pct+'%'}</td><td>${b.win_pct==null?'—':b.win_pct+'%'}</td></tr>`).join('')+'</table>'};
+  h+=bands(ms.graded_live,'GRADED · LIVE TEST (desk exit rules replayed on 5-min candles, after costs)');
+  h+=bands(ms.graded_backfill,'GRADED · PAST COINS (back-fill)');
+  const r=ms.recent||[];
+  h+='<div class="mini" style="margin-top:6px">LATEST COINS</div>'+(r.length?r.slice(0,12).map(x=>`<div class="msi"><div class="hd"><span><a target="_blank" rel="noopener" href="https://dexscreener.com/solana/${E(x.token)}">${E(x.symbol)}</a> <span class="sub">${hm(x.ts)}${x.source&&x.source!=='cycle'?' · '+E(x.source.replace('_',' ')):''}</span>${(x.sm||[]).length?`<span class="whale" title="${E(x.sm.join(', '))}">🐋 ${x.sm.length}</span>`:''}</span><span class="sc ${col(x.score)}">${Math.round(x.score)}</span></div>`
+    +`<div class="dr">${E(x.drivers||'')}</div><div class="wd">would: <b class="${isb(x.would)?'pos':''}">${E(x.would)}${x.would_size?' $'+(+x.would_size).toFixed(0):''}</b> · desk did: <b>${rs(x.did)}</b>${x.ret_sim!=null?` · <span class="${x.ret_sim>=0?'pos':'neg'}">result ${(x.ret_sim>=0?'+':'')+(x.ret_sim*100).toFixed(0)}%</span>`:''}</div></div>`).join(''):'<div class="sub">no coins scored yet</div>');
+  set('msbody',h);}
  return{update(s){if(!s)return;const now=s.server_time||Date.now()/1000;
-  for(const [fn,k] of [[crystal,'crystal_ball'],[scoreboard,'scoreboard'],[limit,'daily_limit'],[speed,'latency'],[sells,'sell_tests'],[nightly,'nightly_report'],[weekly,'weekly_scorecard']]){
+  for(const [fn,k] of [[crystal,'crystal_ball'],[magic,'magic_score'],[scoreboard,'scoreboard'],[limit,'daily_limit'],[speed,'latency'],[sells,'sell_tests'],[nightly,'nightly_report'],[weekly,'weekly_scorecard']]){
    try{fn(s[k],now)}catch(e){console.warn(k,e)}}}};
 })();
 
 /* self-update: if a newer index.html is published, reload once (Pages caches the page up to 10 min) */
-const SITE_BUILD='20261019-1735';
+const SITE_BUILD='20261019-1830';
 setInterval(async()=>{try{const r=await fetch('index.html?b='+Date.now(),{cache:'no-store'});if(!r.ok)return;const m=(await r.text()).match(/SITE_BUILD='([^']+)'/);if(m&&m[1]!==SITE_BUILD&&!sessionStorage.getItem('rl'+m[1])){sessionStorage.setItem('rl'+m[1],1);location.reload();}}catch(e){}},300000);
 const TZ='America/Los_Angeles';
 const fmtT=ts=>ts?new Date(ts*1000).toLocaleString('en-US',{timeZone:TZ,month:'short',day:'numeric',hour:'numeric',minute:'2-digit',second:'2-digit'})+' PT':'—';
