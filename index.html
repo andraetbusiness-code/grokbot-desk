@@ -148,6 +148,7 @@ pre.report{white-space:pre-wrap;overflow-wrap:anywhere;font:11.5px/1.45 ui-monos
   <div class="card mcard"><h2>🧪 SELL TEST <span class="sub">recent rejects</span></h2><div id="stbody"><div class="empty">loading…</div></div></div>
   <div class="card mcard"><h2>📜 NIGHTLY REPORT <span class="sub" id="nrts"></span></h2><div id="nrbody"><div class="empty">loading…</div></div></div>
  </div>
+ <div class="card mcard"><h2>🔎 MISSED WINNERS · RULE SCORECARD <span class="sub" id="mwts"></span></h2><div id="mwbody"><div class="empty">loading…</div></div></div>
  <div class="card mcard"><h2>📊 WEEKLY SCORECARD <span class="sub" id="wsts"></span></h2><div id="wsbody"><div class="empty">loading…</div></div></div>
  <div class="card mcard cbcard"><h2>🔮 CRYSTAL BALL · PRE-PUSH WATCHLIST <span class="sub" id="cbts"></span></h2><div id="cbbody"><div class="empty">loading…</div></div></div>
  <div class="card mcard"><h2>✨ MAGIC SCORE (TEST MODE) <span class="sub" id="msts"></span></h2><div id="msbody"><div class="empty">loading…</div></div></div>
@@ -488,6 +489,24 @@ const Magic=(()=>{
   if(pw.length)h+='<div class="mini pos" style="margin-top:6px">PASSED &amp; WON</div>'+pw.map(n=>`<div class="kv"><span>${E(n.symbol||'?')}</span><b class="pos">${(+n.best_x).toFixed(1)}x</b></div>`).join('');
   if(P&&P.tracked)h+=`<div class="sub" style="margin-top:4px">coins that passed every check: ${P.tracked} tracked, ${P.winners||0} doubled, ${P.dodged||0} crashed</div>`;
   set('sbbody',h);}
+ function missedCard(m){
+  if(bad(m))return set('mwbody',note('Missed-winner data appears after the next publish.')),set('mwts','');
+  if(m.error)return set('mwbody',err(m)),set('mwts','');
+  if(m.enabled===false)return set('mwbody',note('Missed-winners report is switched off.')),set('mwts','');
+  set('mwts',`${m.graded||0} of ${m.tracked||0} skipped coins checked`+(m.since?' since '+tPT(m.since).replace(/,.*$/,''):''));
+  const pct=v=>v==null?'—':(v>=0?'+':'')+Math.round(v)+'%', usd=v=>(v<0?'−':'+')+'$'+Math.abs(+v||0).toFixed(0);
+  const y=m.yesterday||{}, t=m.today||{};
+  let h=`<div class="plain">Every coin the desk passed on is checked for 24h afterwards. A <b class="neg">missed winner</b> went 2x or more. The <i>replay</i> runs our real exits on its 5-minute candles (−20% stop, red candles, 2h time stop, half at 2x, trail, +300%) on a $${(m.ticket_usd||11).toFixed(0)} ticket, because many 2x coins hit the stop first. Nothing changes automatically.</div>`;
+  const day=(d,lbl)=>`<div><div class="mini">${E(lbl)} · ${E(d.day||'')}</div><div class="vs"><div><div class="big neg">${d.x2||0}</div><div class="sub">went 2x+</div></div><div><div class="big">${d.x5||0}</div><div class="sub">5x</div></div><div><div class="big">${d.x10||0}</div><div class="sub">10x</div></div></div><div class="sub">of ${d.graded||0} checked${d.pending?` · ${d.pending} waiting`:''} · replay: <b class="pos">${d.replay_profit_n||0}</b> would have made money, <b class="neg">${d.stopped_first_n||0}</b> stopped out first</div></div>`;
+  h+='<div class="two">'+day(y,'YESTERDAY')+day(t,'TODAY SO FAR')+'</div>';
+  let top=(y.top||[]).length?y.top:(t.top||[]).length?t.top:(m.all_top||[]), tl=(y.top||[]).length?'YESTERDAY':(t.top||[]).length?'TODAY':'ALL HISTORY';
+  h+=`<div class="mini" style="margin-top:6px">TOP MISSED WINNERS · ${tl}</div>`+(top.length?top.slice(0,6).map(x=>`<div class="kv"><span>${E(x.symbol||'?')} <span class="sub">${E(x.group)} · ${E(x.check_plain)} · blocked ${hm(x.ts0)} PT${x.final?'':' · '+Math.round(x.hours||0)+'h so far'}</span></span><b><span class="neg">${(+x.peak_x).toFixed(1)}x</span> <span class="sub">replay</span> <span class="${(x.ret_pct||0)>0?'pos':'neg'}">${pct(x.ret_pct)}</span></b></div>`).join(''):'<div class="sub">none yet</div>');
+  const sc=(m.scorecard_all||[]).filter(a=>a.n);
+  if(sc.length){h+=`<div class="mini" style="margin-top:6px">SCORECARD BY CHECK · ALL HISTORY (net = money saved − missed)</div><table class="mt"><tr><th class="l">check</th><th>coins</th><th>2x+</th><th>losers</th><th>missed</th><th>saved</th><th>net</th></tr>`
+   +sc.sort((a,b)=>a.net_usd-b.net_usd).map(a=>`<tr><td class="l">${E(a.check)}</td><td>${a.n}</td><td class="neg">${a.x2}</td><td class="pos">${a.losers}</td><td>$${(+a.missed_usd).toFixed(0)}</td><td>$${(+a.saved_usd).toFixed(0)}</td><td class="${a.net_usd>=0?'pos':'neg'}">${usd(a.net_usd)}</td></tr>`).join('')+'</table>';}
+  const c=m.costliest_7d;
+  h+=c?`<div class="sub" style="margin-top:4px">Costliest rule this week: <b>${E(c.plain)}</b> (${E(c.group)}): ${c.x2} coins went 2x, ${c.losers} losers blocked; missed $${(+c.missed_usd).toFixed(0)} vs saved $${(+c.saved_usd).toFixed(0)}.</div>`:'<div class="sub" style="margin-top:4px">No rule is costing money this week on replayed exits.</div>';
+  set('mwbody',h);}
  function limit(dl){
   if(bad(dl))return set('dlbody',note('No daily-limit data published yet.')),set('dlreset','');
   if(dl.error)return set('dlbody',err(dl)),set('dlreset','');
@@ -588,6 +607,8 @@ const Magic=(()=>{
     +kv('old rules (before Oct 19 night)',pv('old_rules'))+kv('shape v2 (code buckets, 2 orders)',pv('shape2')+(jv.orders_agree_pct!=null?` · orders agree ${jv.orders_agree_pct}%`:''))
     +kv('slim inputs',pv('slim'))+kv(E(jv.model2||'model 2'),pv('model2'));
    const j2=ms.jev2_7d||{};if(j2.n)h+=kv('Magic Score with Jev as inputs (7d)',`would buy ${j2.would_buy} of ${j2.n} (v1: ${j2.v1_would_buy})`+(j2.graded_buy_n?` · graded buys avg ${j2.graded_buy_avg_ret_pct>=0?'+':''}${j2.graded_buy_avg_ret_pct}%`:''));}
+  const t2=ms.timing2;if(t2&&t2.enabled&&!t2.error&&t2.all){const A=t2.all,f=x=>x==null?'—':(+x).toFixed(2),wb=x=>x.would_buy_n?`would buy ${x.would_buy_n}, ${x.would_buy_win_pct}% made money, avg ${x.would_buy_avg_ret_pct>=0?'+':''}${x.would_buy_avg_ret_pct}%`:'would buy 0';
+    h+=`<div class="mini" style="margin-top:6px">⏱️ TIMING-WEIGHTED SCORE vs CURRENT (test mode, ${A.n} graded coins)</div>`+kv('ranking quality (AUC, 0.5 = coin flip)',`timing ${f(A.timing.auc)} · current ${f(A.v1.auc)}`)+kv('timing score',wb(A.timing))+kv('current score',wb(A.v1))+kv('top 20% by score made money',`timing ${A.timing.top20_win_pct??'—'}% · current ${A.v1.top20_win_pct??'—'}%`);}
   const sa=ms.soft_audience;if(sa&&!sa.error&&sa.enabled){const f=(x,v)=>{const y=(x||{})[v]||{};return `would pass ${y.pass||0}`+(y.pass_graded?` · ${(y.pass_winners||[]).length} won · ${(y.pass_rugs||[]).length} rugged`:'')};
     h+=kv('🗣️ soft fake-follower test A / B (live)',`${f(sa.live,'a')} / ${f(sa.live,'b')} of ${(sa.live||{}).windows||0}`)+kv('… backtest on past coins',`${f(sa.backtest,'a')} / ${f(sa.backtest,'b')} of ${(sa.backtest||{}).coins||0}`);}
   const r=ms.recent||[];
@@ -614,12 +635,12 @@ const Magic=(()=>{
   h+=w.length?w.map(e=>`<div class="kv"><span>${E(e.symbol)} <span class="sub">${hm(e.ts)} · ${E((e.reasons||[]).join('; '))}</span></span><b>${e.would_value!=null?'$'+(+e.would_value).toFixed(2):''}${e.actual_out!=null?' vs real $'+(+e.actual_out).toFixed(2):''}</b></div>`).join(''):'<div class="sub">no would-exit signals yet</div>';
   set('exbody',h);}
  return{update(s){if(!s)return;const now=s.server_time||Date.now()/1000;
-  for(const [fn,k] of [[crystal,'crystal_ball'],[magic,'magic_score'],[exits,'exits'],[scoreboard,'scoreboard'],[limit,'daily_limit'],[speed,'latency'],[sells,'sell_tests'],[nightly,'nightly_report'],[weekly,'weekly_scorecard']]){
+  for(const [fn,k] of [[crystal,'crystal_ball'],[magic,'magic_score'],[exits,'exits'],[scoreboard,'scoreboard'],[missedCard,'missed'],[limit,'daily_limit'],[speed,'latency'],[sells,'sell_tests'],[nightly,'nightly_report'],[weekly,'weekly_scorecard']]){
    try{fn(s[k],now)}catch(e){console.warn(k,e)}}}};
 })();
 
 /* self-update: if a newer index.html is published, reload once (Pages caches the page up to 10 min) */
-const SITE_BUILD='20261019-2240';
+const SITE_BUILD='20261020-0900';
 setInterval(async()=>{try{const r=await fetch('index.html?b='+Date.now(),{cache:'no-store'});if(!r.ok)return;const m=(await r.text()).match(/SITE_BUILD='([^']+)'/);if(m&&m[1]!==SITE_BUILD&&!sessionStorage.getItem('rl'+m[1])){sessionStorage.setItem('rl'+m[1],1);location.reload();}}catch(e){}},300000);
 const TZ='America/Los_Angeles';
 const fmtT=ts=>ts?new Date(ts*1000).toLocaleString('en-US',{timeZone:TZ,month:'short',day:'numeric',hour:'numeric',minute:'2-digit',second:'2-digit'})+' PT':'—';
