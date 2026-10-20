@@ -95,6 +95,7 @@ pre.report{white-space:pre-wrap;overflow-wrap:anywhere;font:11.5px/1.45 ui-monos
 .cbcard{border-color:#7b5cff;box-shadow:inset 0 0 26px #7b5cff22,0 0 0 1px #f5c54214}.cbl{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;margin-top:6px}
 .cbi{background:#ffffff08;border:1px solid #4a3a8f;border-radius:8px;padding:7px 9px}.cbi .hd{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
 .cbi .sc{font-weight:700;color:#f5c542}.cbi ul{margin:4px 0 0 16px;padding:0;font-size:11.5px;color:#d9c8ff}.cbi .tr{font-size:11px;color:#9ef0c8;margin-top:3px}
+.cbw{margin-top:5px;font-size:13px;color:#fff6c8;line-height:1.35}.cbt{margin-top:3px;font-size:12px;color:#9ef0c8;line-height:1.35}.cbd summary{cursor:pointer;font-size:11px;color:var(--dim);margin-top:4px}.cbd ul{margin-top:2px}
 .orb{display:inline-block;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#b48cff 45%,#3a1868);box-shadow:0 0 8px #b48cff;margin-right:5px}
 @media(max-width:620px){.cbl{grid-template-columns:1fr}}
 </style></head><body>
@@ -400,9 +401,10 @@ const Magic=(()=>{
   if(pr.length)h+='<div class="mini" style="margin-top:6px">PROMOTIONS · 24H</div>'+pr.map(p=>`<div class="kv"><span><span class="orb"></span>${E(p.symbol)} <span class="sub">${hm(p.promoted_ts)} · ${E(p.trigger||'')}</span></span><b>${E(p.promote_outcome||'')}</b></div>`).join('');
   const top=cb.top||[];
   h+='<div class="mini" style="margin-top:6px">TOP OF THE WATCHLIST</div>'+(top.length?'<div class="cbl">'+top.slice(0,12).map(r=>{const sg=r.signals||{};
-    return `<div class="cbi"><div class="hd"><span><span class="orb"></span><a target="_blank" rel="noopener" href="https://dexscreener.com/solana/${E(r.token)}">${E(r.symbol)}</a> <span class="sub">${E(r.status==='promoted'?'PROMOTED':'')}</span></span><span class="sc">${Math.round(r.score)}</span></div>`
-    +`<div class="sub">watched ${Math.max(1,Math.round(((r.last_ts||0)-(r.first_ts||0))/60))} min · ${r.checks} checks · since join ${r.since_join_pct==null?'—':(r.since_join_pct>=0?'+':'')+r.since_join_pct+'%'} · h1 ${sg.h1==null?'—':(sg.h1>=0?'+':'')+(+sg.h1).toFixed(0)+'%'} · liq ${sg.liq?'$'+Math.round(sg.liq/1000)+'K':'—'}</div>`
-    +`<ul>${(r.reasons||[]).slice(0,4).map(x=>`<li>${E(x)}</li>`).join('')}</ul>${r.trigger?`<div class="tr">last trigger: ${E(r.trigger)} → ${E(r.promote_outcome||'')}</div>`:''}</div>`}).join('')+'</div>':'<div class="sub">nothing on the list yet</div>');
+    return `<div class="cbi"><div class="hd"><span><span class="orb"></span><a target="_blank" rel="noopener" href="https://dexscreener.com/solana/${E(r.token)}">${E(r.symbol)}</a> <span class="sub">${E(r.status==='promoted'?'PROMOTED':'')}</span></span><span class="sc" title="setup score 0-100">score ${Math.round(r.score)}</span></div>`
+    +`<div class="sub">watched ${Math.max(1,Math.round(((r.last_ts||0)-(r.first_ts||0))/60))} min · price since we started watching ${r.since_join_pct==null?'—':(r.since_join_pct>=0?'+':'')+r.since_join_pct+'%'} · last hour ${sg.h1==null?'—':(sg.h1>=0?'+':'')+(+sg.h1).toFixed(0)+'%'} · pool money ${sg.liq?'$'+Math.round(sg.liq/1000)+'K':'—'}</div>`
+    +(r.why?`<div class="cbw">👁️ <b>Why we're watching:</b> ${E(r.why)}</div>`:'')+(r.waiting_for?`<div class="cbt">⏳ <b>Waiting for:</b> ${E(r.waiting_for)}</div>`:'')
+    +`<details class="cbd"><summary>the details (${(r.reasons||[]).length})</summary><ul>${(r.reasons||[]).slice(0,6).map(x=>`<li>${E(x)}</li>`).join('')}</ul></details>${r.trigger?`<div class="tr">last trigger: ${E(r.trigger)} → ${E(r.promote_outcome||'')}</div>`:''}</div>`}).join('')+'</div>':'<div class="sub">nothing on the list yet</div>');
   set('cbbody',h);}
  return{update(s){if(!s)return;const now=s.server_time||Date.now()/1000;
   for(const [fn,k] of [[crystal,'crystal_ball'],[scoreboard,'scoreboard'],[limit,'daily_limit'],[speed,'latency'],[sells,'sell_tests'],[nightly,'nightly_report'],[weekly,'weekly_scorecard']]){
@@ -410,7 +412,7 @@ const Magic=(()=>{
 })();
 
 /* self-update: if a newer index.html is published, reload once (Pages caches the page up to 10 min) */
-const SITE_BUILD='20261019-1730';
+const SITE_BUILD='20261019-1735';
 setInterval(async()=>{try{const r=await fetch('index.html?b='+Date.now(),{cache:'no-store'});if(!r.ok)return;const m=(await r.text()).match(/SITE_BUILD='([^']+)'/);if(m&&m[1]!==SITE_BUILD&&!sessionStorage.getItem('rl'+m[1])){sessionStorage.setItem('rl'+m[1],1);location.reload();}}catch(e){}},300000);
 const TZ='America/Los_Angeles';
 const fmtT=ts=>ts?new Date(ts*1000).toLocaleString('en-US',{timeZone:TZ,month:'short',day:'numeric',hour:'numeric',minute:'2-digit',second:'2-digit'})+' PT':'—';
