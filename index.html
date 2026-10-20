@@ -431,7 +431,7 @@ const Magic=(()=>{
 })();
 
 /* self-update: if a newer index.html is published, reload once (Pages caches the page up to 10 min) */
-const SITE_BUILD='20261019-1900';
+const SITE_BUILD='20261019-1905';
 setInterval(async()=>{try{const r=await fetch('index.html?b='+Date.now(),{cache:'no-store'});if(!r.ok)return;const m=(await r.text()).match(/SITE_BUILD='([^']+)'/);if(m&&m[1]!==SITE_BUILD&&!sessionStorage.getItem('rl'+m[1])){sessionStorage.setItem('rl'+m[1],1);location.reload();}}catch(e){}},300000);
 const TZ='America/Los_Angeles';
 const fmtT=ts=>ts?new Date(ts*1000).toLocaleString('en-US',{timeZone:TZ,month:'short',day:'numeric',hour:'numeric',minute:'2-digit',second:'2-digit'})+' PT':'—';
@@ -459,7 +459,7 @@ function _render(s){
  if(!L){document.getElementById('panels').innerHTML=['CHIEF','SCAN','VET','QUANT','RISK','CRAWLER'].map(n=>panel(n,'off','—','no cycles recorded yet')).join('');}
  else{
   const pick=st.pick||{}, wbo=st.would_be_order, ts=st.typesafe;
-  const open=(s.positions||[]).filter(p=>/open/.test(p.status||''));
+  const open=(s.positions||[]).filter(p=>(p.mode==='live'&&p.status==='live_open')||(p.mode==='test'&&p.status==='test_open'));   // shadow (paper) rows never count
   const chiefBig=wbo?'ORDER':(pick.decision||'—').replace(/_/g,' ');
   const P=[];
   P.push(panel('CHIEF',stale?'warn':'ok',esc(chiefBig),`last cycle ${fmtS(L.ts)} · ${ago(L.ts)}`,[
